@@ -2,6 +2,7 @@ import socket
 import selectors
 import sys
 import types
+import ServerMessage
 
 #TODO: implement this as a bash argument when running the code
 listenaddr = ('127.0.0.1', 8080)
@@ -11,9 +12,9 @@ def accept_wrapper(sock):
     server_socket, client_socket = sock.accept()
     print(f'Accepted request from client {client_socket}\n')
     server_socket.setblocking(False)
-    data = types.SimpleNamespace(addr=client_socket, inb=b"", outb=b"")
+    message = ServerMessage.Message(sel, server_socket, client_socket)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(server_socket, events, data=data)
+    sel.register(server_socket, events, data=message)
 
     
 # Initiating the listening socket 
@@ -34,7 +35,9 @@ try:
                 # accept connection and process it
                 accept_wrapper(key.fileobj)
             else:
-                # service the connectoin
+                # service the connectoi
+                message = key.data
+                message.process_event(mask)
                 print(key.data)
                 sys.exit()
         # handle the events at the selector object
