@@ -1,0 +1,2 @@
+GET /hypertext/WWW/TheProject.html info.cern.ch 80
+POST test.txt 127.0.0.1 
