@@ -17,6 +17,7 @@ class request:
         self.send_buffer = b''
         self.requestSize = 0            # total size of the request in bytes
         self.header_fields = dict()
+        self.body = ''
 
 
     def process_events(self, mask):
@@ -32,6 +33,9 @@ class request:
         self.message += self.recv_buffer.decode('ascii')   
         print(self.message)
         header = self.message.partition('\r\n\r\n')[0]
+        print(header)
+        print(self.message)
+        self.body += self.message.partition('\r\n\r\n')[2]
         requestLine = self.message.partition('\r\n')[0]
         method = requestLine.split(' ')[0]
         URL = requestLine.split(' ')[1][1:]
@@ -50,15 +54,16 @@ class request:
 
 
     def processGET(self, filename):
-        print(filename)
-        print(f'\n\n\n\n\n{self.header_fields}')
         f = open(filename, "r")
         print(f.read())
+        # Generate response message
+
 
     def processPOST(self, filename):
         print(filename)
-        self.message = self.message.partition('\r\n\r\n')
-        print(self.message[1])
-        body = self.message[-1]
-        print(body)
+        new_file = open(filename, 'w')
+        print(self.body)
+        new_file.write(self.body)
+        new_file.close()
+        print('done')
     
