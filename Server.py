@@ -1,47 +1,40 @@
 import socket
 import selectors
-import sys
 import types
-import ServerMessage
+import sys
 
-#TODO: implement this as a bash argument when running the code
-listenaddr = ('127.0.0.1', 8080)
-sel = selectors.DefaultSelector()
+from requests import request
+import HttpRequest
+
+localhost = '127.0.0.1'
+port = 8080
 
 def accept_wrapper(sock):
-    server_socket, client_socket = sock.accept()
-    print(f'Accepted request from client {client_socket}\n')
-    server_socket.setblocking(False)
-    message = ServerMessage.Message(sel, server_socket, client_socket)
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(server_socket, events, data=message)
+    conn, addr = sock.accept()  # Should be ready to read
+    print(f"Accepted connection from {addr}")
+    conn.setblocking(False)
+    message = HttpRequest.request(conn, sel, addr)
+    sel.register(conn, selectors.EVENT_READ, data=message)
 
-    
-# Initiating the listening socket 
-listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-listen_socket.bind(listenaddr)
-listen_socket.listen()
-print(f'Server started listeninig on {listenaddr[0]}: {listenaddr[1]}')
-listen_socket.setblocking(False)
-sel.register(listen_socket, selectors.EVENT_READ, data=None)
+sel = selectors.DefaultSelector(    )
+lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+lsock.bind((localhost, port))
+lsock.listen()
+print(f"Listening on {(localhost, port)}")
+lsock.setblocking(False)
+events = selectors.EVENT_READ
+sel.register(lsock,events, data=None)
 
-
+# event loop 
 try:
-# The event loop
     while True:
         events = sel.select(timeout= None)
         for key, mask in events:
             if key.data is None:
-                # accept connection and process it
+                print('initiate connection')
                 accept_wrapper(key.fileobj)
             else:
-                # service the connectoi
-                message = key.data
-                message.process_event(mask)
-                print(key.data)
-                sys.exit()
-        # handle the events at the selector object
+                key.data.process_events(mask)
+
 except KeyboardInterrupt:
     sys.exit()
-
-
