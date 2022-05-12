@@ -1,3 +1,4 @@
+from ast import Pass
 from calendar import c
 import socket
 import selectors
@@ -12,7 +13,7 @@ def generate_operations_list(filename):
             operations.append(anOperation)
     for anOperation in operations:
             print(anOperation, end='')  
-    return operations
+    return operations #returns lsit of operations
 
 
 #This functions extracts the main elements of http request from operation
@@ -31,26 +32,40 @@ def extract_operation_elements(operation):
 #This function constructs the http request in the right format
 def construct_http_request(method,file,host,port):
     whitespace =' '
-    http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"
+    if method == "GET":
+        http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"
+    else:   #method = "POST"
+        fileCotents = open(f'{file}','r')
+        http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"+fileCotents+"\r\n"
     return http_request
     
-#construct_http_request("POST test.txt 127.0.0.1")
+def convert_request_bytes(http_request):
+    http_request_inBytes = http_request.encode('ascii')
+    return http_request_inBytes
 
-#_______________________________________________________________________________________________________________
+
+def start_connection(host,port):
+    Pass
+
+
+
 def main():
-    
-    """ operations_list = generate_operations_list("input_file.txt")
-    for an_operation in operations_list:
-        http
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #creating a TCP connection
-        server_address = (f'{an_operation_exists.}') """
+    sel = selectors.DefaultSelector()
+    operations_list = generate_operations_list("input_file.txt")
+    for i in range (0,len(operations_list)):
+        conn_id = i+1                                                    #assigning an id to each connection
+        an_operation = operations_list[conn_id]
+        method, file, host, port = extract_operation_elements(an_operation)
+        server_address = (host,port)
+        print(f"Starting connection {conn_id} to {server_address}")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        #creating a TCP connection
+        sock.setblocking(False)
+        sock.connect_ex(server_address)
+        events = selectors.EVENT_READ | selectors.EVENT_WRITE
 
-
-
-
-    
-
-
+        #Composing the request packet
+        http_request = construct_http_request(method,file,host,port)
+        http_request_in_bytes = convert_request_bytes(http_request)
 
 
     
