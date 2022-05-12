@@ -3,6 +3,7 @@ from calendar import c
 import socket
 import selectors
 import sys
+import HttpRequestClient
 from urllib import request
 
 #This function generates the operations list from the input file
@@ -44,11 +45,6 @@ def convert_request_bytes(http_request):
     return http_request_inBytes
 
 
-def start_connection(host,port):
-    Pass
-
-
-
 def main():
     sel = selectors.DefaultSelector()
     operations_list = generate_operations_list("input_file.txt")
@@ -62,10 +58,23 @@ def main():
         sock.setblocking(False)
         sock.connect_ex(server_address)
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
+        message = HttpRequestClient.Message(sel,sock,address,request)
+        sel.register(sock,events, data=message)
 
         #Composing the request packet
         http_request = construct_http_request(method,file,host,port)
         http_request_in_bytes = convert_request_bytes(http_request)
+        try:
+            while True:
+                events = sel.select(timeout=1)
+                for key, mask in events:
+                    message = key.data
+                    try:
+                        message.process_events(mask)
+                    except KeyboardInterrupt:
+                        sys.exit()
+        finally:
+            sel.close()                   
 
 
     
