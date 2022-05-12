@@ -25,22 +25,25 @@ def extract_operation_elements(operation):
     request_method = operations_elements[0]
     requested_file_name = operations_elements[1]
     host_name = operations_elements[2]
-    if len(operations_elements) == 4:
-        port_number = operations_elements[3]
+    #temp = opera
+    if len(operations_elements) == 4 and operations_elements[3] != '' :
+        port_number = int(operations_elements[3])
+        #print (f'{port_number}')
+        #print(type(port_number))
     else:
-        port_number = "80"
-    #print(operations_elements)
+        port_number = 80
+    print(operations_elements)
     return request_method, requested_file_name, host_name, port_number
 
 #This function constructs the http request in the right format
 def construct_http_request(method,file,host,port):
     whitespace =' '
     if method == "GET":
-        http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"
+        http_request = f'{method} {file} HTTP/1.0\r\nHost:{host}:{port}\r\n\r\n'
     else:   #method = "POST"
         with open(f'{file}','r') as file:
             fileCotents = file.read()
-        http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"+fileCotents+"\r\n"
+        http_request = f'{method} {file} HTTP/1.0\r\nHost:{host}:{port}\r\n\r\n{fileCotents}\r\n'
     return http_request
     
 def convert_request_bytes(http_request):
@@ -62,7 +65,7 @@ def handle_successful_GET(server_response,filename): #HTTP/1.0 200 OK\r\n\r\ndat
 
 def main():
     operations_list = generate_operations_list("input_file.txt")
-    for i in range (0,len(operations_list)):
+    for i in range (0,len(operations_list)-1):
         conn_id = i+1                                                    #assigning an id to each operation to access an individual operation for later usage
         an_operation = operations_list[conn_id]
         method, file, host, port = extract_operation_elements(an_operation)
@@ -70,7 +73,7 @@ def main():
         http_request = construct_http_request(method,file,host,port)
         http_request_in_bytes = convert_request_bytes(http_request)
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect((host,port))
+        client.connect_ex((host,port))
         client.sendall(http_request_in_bytes)
         while True:
             server_response_inBytes = client.recv(1024)
