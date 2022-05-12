@@ -38,7 +38,8 @@ def construct_http_request(method,file,host,port):
     if method == "GET":
         http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"
     else:   #method = "POST"
-        fileCotents = open(f'{file}','r')
+        with open(f'{file}','r') as file:
+            fileCotents = file.read()
         http_request = method+whitespace+file+whitespace+"HTTP/1.0\r\nHost:"+host+':'+port+"\r\n\r\n"+fileCotents+"\r\n"
     return http_request
     
