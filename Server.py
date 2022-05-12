@@ -1,26 +1,45 @@
 import socket
 import selectors
 import sys
+import HttpRequest
 
-#TODO: implement this as a bash argument when running the code
-listenaddr = ('127.0.0.1', 8080)
-sel = selectors.DefaultSelector()
+localhost = '127.0.0.1'
+port = 8080
+selector = selectors.DefaultSelector()
+listening_address = (localhost, port)
 
-# Initiating the listening socket 
-listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-listen_socket.bind(listenaddr)
-listen_socket.listen()
-print(f'Server started listeninig on {listenaddr[0]}: {listenaddr[1]}')
-listen_socket.setblocking(False)
-sel.register(listen_socket, selectors.EVENT_READ, data=None)
+def accept_wrapper(sock):
+    server_socket, client_address = sock.accept()  # Should be ready to read
+    print(f"Accepted connection from {client_address}")
+    server_socket.setblocking(False)
+    message = HttpRequest.request(server_socket, selector, client_address)
+    selector.register(server_socket, selectors.EVENT_READ, data=message)
 
-# The event loop
-while True:
-    events = sel.select(timeout= None)
-    for key, mask in events:
-        if key.data is None:
-            # accept connection and process it
-        else:
-            # service the connectoin
-    # handle the events at the selector object
-    print(events)
+def eventLoop():
+    try:
+        while True:
+            events = selector.select(timeout=None)
+            for key, mask in events:
+                if key.data is None:
+                    print('initiate connection')
+                    accept_wrapper(key.fileobj)
+                else:
+                    key.data.process_events(mask)
+    except KeyboardInterrupt:
+        sys.exit()
+
+# Entry point of the program
+def main():
+    # Initiating the listening socket
+    lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsock.bind(listening_address)
+    lsock.listen()
+    print(f"Server started listening on localhost:{listening_address[1]}")
+    lsock.setblocking(False)
+    # Registering the listening socket on the selector
+    selector.register(lsock, selectors.EVENT_READ, data=None)
+    eventLoop()
+
+# Starting the main function of the program
+if __name__ == "__main__":
+    main()
