@@ -31,16 +31,14 @@ class request:
         self.recv_buffer = self.socket.recv(recv_buffer_size)
         self.requestSize = len(self.recv_buffer)     # will use this to check that we have the complete message by comparing it to conten length in post requests
         self.message += self.recv_buffer.decode('ascii')   
-        print(self.message)
         header = self.message.partition('\r\n\r\n')[0]
-        print(header)
-        print(self.message)
         self.body += self.message.partition('\r\n\r\n')[2]
         requestLine = self.message.partition('\r\n')[0]
         method = requestLine.split(' ')[0]
         URL = requestLine.split(' ')[1][1:]
         version = requestLine.split(' ')[2]        #HTTP version
-        
+        print(version)
+        self.generateResponse(version, URL)
         for header_line in header.split('\r\n')[1:]:
             line_list = header_line.split(': ')
 
@@ -50,12 +48,16 @@ class request:
             self.processGET(URL)
         if method == 'POST':
             self.processPOST(URL)
-        self.selector.modify(self.socket, selectors.EVENT_WRITE, data=self)
+        #self.selector.modify(self.socket, selectors.EVENT_WRITE, data=self)
 
 
     def processGET(self, filename):
         f = open(filename, "r")
         print(f.read())
+        response_body = f.read()
+        
+        #print(self.header)
+        
         # Generate response message
 
 
@@ -67,3 +69,15 @@ class request:
         new_file.close()
         print('done')
     
+    def generateResponse(self, version, url):
+        status_line = version + ' 200 OK\r\n\r\n'
+        f = open(url, "r")
+        response_body = f.read()
+        response = status_line+response_body
+        print(response)
+        self.selector.modify(self.socket, selectors.EVENT_WRITE, data=self)
+        self.socket.sendall(response.encode())
+    
+        self.selector.modify(self.socket, selectors.EVENT_READ, data=self)
+        print('response Sent')
+        return
