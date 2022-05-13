@@ -1,27 +1,33 @@
+from base64 import decode
+
+
 recv_buffer_size = 10000
 
 class Request:
     def __init__(self, decoded_message):
-        #
-        header, garbage, body = decoded_message.partition('\r\n\r\n')
-        request_line_temp = header.split('\r\n')[0]
-        request_line_attributes = request_line_temp.split(' ') 
+        print(decoded_message)
+        self.header, self.garbage, self.body = decoded_message.partition('\r\n\r\n')
+        self.request_line_temp = self.header.split('\r\n')[0]
+        self.request_line_attributes = self.request_line_temp.split(' ') 
         self.request_line = {
-            'method': request_line_attributes[0],
-            'url': request_line_attributes[1][1:],
-            'version': request_line_attributes[2]     
+            'method': self.request_line_attributes[0],
+            'url': self.request_line_attributes[1],
+            'version': self.request_line_attributes[2]     
         }
-        if body is not None:
-            self.body = body         # total size of the request in bytes
+        if len(self.body) >= 0:
+            pass
         else:
-            self.body = ''
+            self.body = ''    
+            
     def processRequest(self):  
         method = self.request_line['method']
         filepath = self.request_line['url']
+        filepath = filepath[1:]
         if method == 'GET':
-            self.GET(filepath)
+            response = self.GET(filepath)
         if method == 'POST':
-            self.POST(filepath)
+            response = self.POST(filepath)
+        return response
 
     def GET(self, filename):
         try:
@@ -49,13 +55,10 @@ class Request:
     
     def createResponse (self, response_code, response_message):
         version = self.request_line['version']
-        print(version)
         status_line = f'{version} {response_code} {response_message}\r\n'
-        print(status_line)
-        if self.body is not None:
-            data = f'\r\n{self.body}\r\n'
-            response = f'{status_line} + {data}'
+        if self.body !='':
+            data = f'{self.body}'
+            response = f'{status_line}\r\n{data}\r\n'
         else:
-            response = f'{status_line}'
-        print(self.body)
+            response = f'{status_line}\r\n'
         return response

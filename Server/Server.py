@@ -14,16 +14,11 @@ def main():
     lsock.bind(listen_addr)
     print(f'Started listening for requests on localhost:{listen_addr[1]}')
     while True:
-        lsock.listen()
+        lsock.listen(1)
         client_sock, client_address = lsock.accept()
         new_thread = ClientThread.ClientThread(client_address, client_sock)
         new_thread.start()
-
-    server.listen(1)
-    clientsock, clientAddress = server.accept()
-    newthread = Server.ClientThread(clientAddress, clientsock)
-    newthread.start()
-
+        
 # Starting the main function of the program
 if __name__ == "__main__":
     main()

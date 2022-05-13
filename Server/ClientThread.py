@@ -1,5 +1,5 @@
-import socket, threading
-import sys
+import threading
+from time import sleep
 import HttpRequest
 
 recv_buffer_size = 10000
@@ -11,30 +11,17 @@ class ClientThread(threading.Thread):
         self.client_addr = client_address
         print(f'Listening for client{client_address}')
     
-    
     def run(self):
         print (f"Connection from : {self.client_addr}")
-        #self.csocket.send(bytes("Hi, This is from Server..",'utf-8'))
-        message = self.client_socket.recv(recv_buffer_size)
-        request = HttpRequest.Request(message.decode('ascii'))
-        response = request.processRequest()
-        #! notice using a loop
-        #self.client_socket.sendall(response.encode('ascii'))
-
-        #
-        '''
-        msg = ''
-        try:
-            while True:
-                data = self.client_socket.recv(2048)
-                msg = data.decode()
-                if msg=='bye':
-                    break
-                print ("from client", msg)
-                self.client_socket.send(bytes(msg,'UTF-8'))
-        except KeyboardInterrupt:
-            sys.exit()
-
-        print ("Client at ", self.client_addr , " disconnected...")
-        pass
-        '''
+        while True:
+            message = self.client_socket.recv(recv_buffer_size)
+            if message:
+                request = HttpRequest.Request(message.decode('ascii'))
+                response = request.processRequest()
+                self.client_socket.sendall(response.encode('ascii') )
+                print(response)
+                print(f'\n{len(response)}')
+                
+            else:
+                sleep(100)
+            
