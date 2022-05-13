@@ -12,16 +12,13 @@ class ClientThread(threading.Thread):
         print(f'Listening for client{client_address}')
     
     def run(self):
-        print (f"Connection from : {self.client_addr}")
         while True:
             message = self.client_socket.recv(recv_buffer_size)
             if message:
                 request = HttpRequest.Request(message.decode('ascii'))
                 response = request.processRequest()
                 self.client_socket.sendall(response.encode('ascii') )
-                print(response)
-                print(f'\n{len(response)}')
-                
+                print(f'Server response\n{response}')
             else:
                 sleep(100)
             
