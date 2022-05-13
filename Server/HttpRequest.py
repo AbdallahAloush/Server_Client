@@ -1,6 +1,3 @@
-from base64 import decode
-
-
 recv_buffer_size = 10000
 
 class Request:
@@ -13,14 +10,12 @@ class Request:
             'url': self.request_line_attributes[1],
             'version': self.request_line_attributes[2]     
         }
-        if len(self.body) >= 0:
-            pass
-        else:
+        if len(self.body) == 0:
             self.body = ''    
             
     def processRequest(self):  
-        method = self.request_line['method']
-        filepath = self.request_line['url']
+        method = self.request_line['method']        # GET or POST
+        filepath = self.request_line['url']      
         filepath = filepath[1:]
         if method == 'GET':
             response = self.GET(filepath)
@@ -33,7 +28,6 @@ class Request:
             retrived_file = open(filename, "r")
             self.body = retrived_file.read()
             retrived_file.close()
-            # create ok message
             response = self.createResponse(200, 'OK')
         except:
             self.body = ''
@@ -50,15 +44,14 @@ class Request:
             response = self.createResponse(200, 'OK')
         except:
             response = self.createResponse(403, 'Forbidden')
-            
         return response
     
     def createResponse (self, response_code, response_message):
-        version = self.request_line['version']
+        version = self.request_line['version']              
         status_line = f'{version} {response_code} {response_message}\r\n'
-        if self.body !='':
+        if self.body == '':         # No file is being sent
+            response = f'{status_line}\r\n'
+        else:                       # Sending a file
             data = f'{self.body}'
             response = f'{status_line}\r\n{data}\r\n'
-        else:
-            response = f'{status_line}\r\n'
         return response

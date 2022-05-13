@@ -9,7 +9,7 @@ class ClientThread(threading.Thread):
         threading.Thread.__init__(self)
         self.client_socket = client_socket
         self.client_addr = client_address
-        print(f'Listening for client{client_address}')
+        print(f'Listening for clien t{client_address}')
     
     def run(self):
         while True:
