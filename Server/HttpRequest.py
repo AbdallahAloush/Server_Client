@@ -5,7 +5,6 @@ recv_buffer_size = 10000
 
 class Request:
     def __init__(self, decoded_message):
-        print(decoded_message)
         self.header, self.garbage, self.body = decoded_message.partition('\r\n\r\n')
         self.request_line_temp = self.header.split('\r\n')[0]
         self.request_line_attributes = self.request_line_temp.split(' ') 
@@ -33,6 +32,7 @@ class Request:
         try:
             retrived_file = open(filename, "r")
             self.body = retrived_file.read()
+            retrived_file.close()
             # create ok message
             response = self.createResponse(200, 'OK')
         except:
@@ -43,10 +43,9 @@ class Request:
     def POST(self, filename):
         try:
             new_file = open(filename, 'w')
-            print(self.body)
             new_file.write(self.body)
             new_file.close()
-            print('done')
+            print('Wrote file Successfully\n')
             response = self.createResponse(200, 'OK')
         except:
             response = self.createResponse(403, 'Forbidden')
