@@ -1,6 +1,3 @@
-from base64 import decode
-
-
 recv_buffer_size = 10000
 
 class Request:
@@ -33,7 +30,6 @@ class Request:
             retrived_file = open(filename, "r")
             self.body = retrived_file.read()
             retrived_file.close()
-            # create ok message
             response = self.createResponse(200, 'OK')
         except:
             self.body = ''
