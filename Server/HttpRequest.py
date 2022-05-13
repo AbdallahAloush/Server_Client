@@ -45,6 +45,7 @@ class Request:
             new_file = open(filename, 'w')
             new_file.write(self.body)
             new_file.close()
+            self.body = ''
             print('Wrote file Successfully\n')
             response = self.createResponse(200, 'OK')
         except:
