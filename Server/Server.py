@@ -1,8 +1,7 @@
 import socket, sys
 import ClientThread
-
-
-
+# sys module is used for handling bash arguments
+# ClientThread is a module responsible for making a thread for each new connection
 
 def bashArguments():            # A function that handles bash arguments 
     arg_count = len(sys.argv)
