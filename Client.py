@@ -16,8 +16,8 @@ def generate_operations_list(filename):
     with open(f'{filename}','rt') as inputFile:
         for anOperation in inputFile:
             operations.append(anOperation)
-    for anOperation in operations:
-            print(anOperation, end='')  
+    #for anOperation in operations:
+        #    print(anOperation, end='')  
     return operations #returns lsit of operations
 
 
@@ -26,14 +26,14 @@ def extract_operation_elements(operation):
     operations_elements = operation.split(' ')
     request_method = operations_elements[0]
     requested_file_name = operations_elements[1]
-    host_name = operations_elements[2]
     if len(operations_elements) == 4 and operations_elements[3] != '' :
-        port_number = int(operations_elements[3])
+        host_name = operations_elements[2]
+        port_number = int(operations_elements[3][:-1])
         #print (f'{port_number}')
         #print(type(port_number))
     else:
+        host_name = operations_elements[2][:-1]
         port_number = 80
-    print(operations_elements)
     return request_method, requested_file_name, host_name, port_number
 
 #This function constructs the http request in the right format
@@ -91,6 +91,7 @@ def main():
         method, file, host, port = extract_operation_elements(an_operation)
         #Composing the request packet
         http_request = construct_http_request(method,file,host,port)
+        print("Http Request--->"+http_request+'\n')
         if isCached(cached_requests_list,http_request) ==1:
             print("Cache hit successful!\n")
             handle_successful_cache_hit(f'\Cached{file}',file)
@@ -98,12 +99,12 @@ def main():
             print("Cache hit not successful , connecting to server!\n")
             http_request_in_bytes = convert_request_bytes(http_request)
             client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client.connect_ex((host,port))
+            client.connect((host,port))
             client.sendall(http_request_in_bytes)
             while True:                        #event loop waiting for the server's response
                 server_response_inBytes = client.recv(1024)
                 server_response = server_response_inBytes.decode('ascii')        #keep the decoded recieved data from server in a variable for later use if needed
-                print("From Server:" ,server_response)
+                print("Server Response:\n" ,server_response)
                 if method == "GET" and extract_message_code(server_response) =="404":         #HTTP/1.0 404 Not Found\r\n
                     break
                 elif method =="GET" and extract_message_code(server_response) == "200":      #HTTP/1.0 200 OK\r\n\r\ndatadatadata\r\n
@@ -114,10 +115,11 @@ def main():
                 
                 else:                                              #method is POST and the client does nothing on both OK snd Forbidden responses
                     if extract_message_code(server_response) == "403":
-                        print("Post Request forbidden \n")
+                        print("Status of Post Request------> Forbidden \n")
                     else: 
-                        print("Post Request accepted \n")
+                        print("Status of Post Request ------> accepted \n")
                     break
+            print("_______________________________________________________________________________________________")
             client.close()
         
     
