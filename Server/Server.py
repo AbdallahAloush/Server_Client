@@ -18,7 +18,7 @@ def bashArguments():            # A function that handles bash arguments
 
     return (localhost, port)
 
-def main():
+def main():                     # Entry point of the Server
     listen_addr = bashArguments()
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
