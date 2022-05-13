@@ -1,6 +1,6 @@
 # Server Client
 
-This project using multithreading, pipelining and HTTP/1.1 to make stripped down version of HTTP Client and Server
+This project using multithreading, pipelining and HTTP/1.1 to make a stripped down version of HTTP Client and Server
 
 ## Server features:
 
