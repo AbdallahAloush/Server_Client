@@ -1,7 +1,8 @@
 recv_buffer_size = 10000
 
 class Request:
-    def __init__(self, decoded_message):
+    def __init__(self, decoded_message, index):
+        self.index = index
         self.header, self.garbage, self.body = decoded_message.partition('\r\n\r\n')
         self.request_line_temp = self.header.split('\r\n')[0]
         self.request_line_attributes = self.request_line_temp.split(' ') 
@@ -12,7 +13,10 @@ class Request:
         }
         if len(self.body) == 0:
             self.body = ''    
-            
+
+    def get_index(self):
+        return self.index
+
     def processRequest(self):  
         method = self.request_line['method']        # GET or POST
         filepath = self.request_line['url']      
@@ -21,7 +25,7 @@ class Request:
             response = self.GET(filepath)
         if method == 'POST':
             response = self.POST(filepath)
-        return response
+        return response , self.index  #!!!!!!!!!
 
     def GET(self, filename):
         try:
