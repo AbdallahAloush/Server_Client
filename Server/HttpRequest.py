@@ -1,7 +1,11 @@
+import threading
+# We will assign each object to a thread
 recv_buffer_size = 10000
 
-class Request:
-    def __init__(self, decoded_message):
+class Request(threading.Thread):
+    def __init__(self, decoded_message, index_of_request):
+        threading.Thread.__init__(self)
+        self.index = index_of_request
         self.header, self.garbage, self.body = decoded_message.partition('\r\n\r\n')
         self.request_line_temp = self.header.split('\r\n')[0]
         self.request_line_attributes = self.request_line_temp.split(' ') 
@@ -10,29 +14,31 @@ class Request:
             'url': self.request_line_attributes[1],
             'version': self.request_line_attributes[2]     
         }
+        self.response = ''
         if len(self.body) == 0:
-            self.body = ''    
-            
+            self.body = '' 
+
+    def run(self):
+        self.processRequest()
+
     def processRequest(self):  
         method = self.request_line['method']        # GET or POST
         filepath = self.request_line['url']      
         filepath = filepath[1:]
         if method == 'GET':
-            response = self.GET(filepath)
+            self.GET(filepath)
         if method == 'POST':
-            response = self.POST(filepath)
-        return response
-
+            self.POST(filepath)
+        
     def GET(self, filename):
         try:
             retrived_file = open(filename, "r")
             self.body = retrived_file.read()
             retrived_file.close()
-            response = self.createResponse(200, 'OK')
+            self.createResponse(200, 'OK')
         except:
             self.body = ''
-            response = self.createResponse(404, 'Not Found')
-        return response
+            self.createResponse(404, 'Not Found')
 
     def POST(self, filename):
         try:
@@ -41,17 +47,15 @@ class Request:
             new_file.close()
             self.body = ''
             print('Wrote file Successfully\n')
-            response = self.createResponse(200, 'OK')
+            self.createResponse(200, 'OK')
         except:
-            response = self.createResponse(403, 'Forbidden')
-        return response
+            self.createResponse(403, 'Forbidden')
     
     def createResponse (self, response_code, response_message):
         version = self.request_line['version']              
         status_line = f'{version} {response_code} {response_message}\r\n'
         if self.body == '':         # No file is being sent
-            response = f'{status_line}\r\n'
+            self.response = f'{status_line}\r\n'
         else:                       # Sending a file
             data = f'{self.body}'
-            response = f'{status_line}\r\n{data}\r\n'
-        return response
+            self.response = f'{status_line}\r\n{data}\r\n'
